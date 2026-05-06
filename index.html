@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLS Engine — AI Execution Infrastructure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Tokens ── */
+:root {
+  --bg: #141C22;
+  --teal: #00C2E0;
+  --green: #4ADE5C;
+  --text-primary: #E8F5F2;
+  --text-secondary: #7BB5A8;
+  --text-accent: #00C2E0;
+  --border: rgba(0,194,224,0.12);
+  --gradient: linear-gradient(90deg, #00C2E0, #4ADE5C);
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* ── Utilities ── */
+.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.gradient-text {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+.eyebrow {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-accent);
+  margin-bottom: 20px;
+}
+.section-headline {
+  font-weight: 800;
+  font-size: clamp(32px, 5vw, 48px);
+  letter-spacing: -3px;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+.section-pad { padding: 100px 0; }
+
+/* ── Buttons ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  padding: 0 36px;
+  border-radius: 27px;
+  background: var(--gradient);
+  color: var(--bg);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  padding: 0 36px;
+  border-radius: 27px;
+  background: transparent;
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-ghost:hover { background: rgba(0,194,224,0.08); }
+.btn-group { display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* ══════════════════════════════════════════
+   NAV
+   ══════════════════════════════════════════ */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(20,28,34,0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+.nav-logo {
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a { font-size: 15px; color: var(--text-secondary); transition: color 0.2s; }
+.nav-links a:hover { color: var(--text-primary); }
+.nav-cta {
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 20px;
+  background: var(--gradient);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Mobile nav */
+.nav-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; }
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links { display: none; position: absolute; top: 68px; left: 0; right: 0; flex-direction: column; background: rgba(20,28,34,0.97); padding: 24px; gap: 20px; border-bottom: 1px solid var(--border); }
+  .nav-links.open { display: flex; }
+}
+
+/* ══════════════════════════════════════════
+   SECTION 1 — Hero
+   ══════════════════════════════════════════ */
+.hero {
+  position: relative;
+  padding: 72px 0 56px;
+  overflow: hidden;
+}
+.hero-aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(594px circle at 75% 15%, rgba(0,194,224,0.18), transparent),
+    radial-gradient(486px circle at 15% 85%, rgba(74,222,92,0.20), transparent),
+    radial-gradient(410px circle at 50% 50%, rgba(0,194,224,0.07), transparent);
+}
+
+/* Centered hero layout */
+.hero-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.hero-diagram { display: none; }
+
+.hero-content { }
+.hero-badge {
+  display: inline-block;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-weight: 800;
+  font-size: clamp(32px, 4.5vw, 52px);
+  letter-spacing: -3px;
+  line-height: 1.05;
+  margin-bottom: 18px;
+}
+.hero-sub {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: 10px;
+  max-width: 660px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero .btn-group { margin-top: 24px; justify-content: center; }
+.hero-glyph { margin-bottom: 10px; margin-top: -8px; }
+
+/* ── Hero diagram (orchestration metaphor) ── */
+.hero-diagram {
+  position: relative;
+  width: 440px;
+  height: 380px;
+  flex-shrink: 0;
+}
+.hero-diagram svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* SVG animation */
+@keyframes flowPulse {
+  0%   { stroke-dashoffset: 200; opacity: 0.3; }
+  50%  { opacity: 0.9; }
+  100% { stroke-dashoffset: 0; opacity: 0.3; }
+}
+@keyframes flowPulse2 {
+  0%   { stroke-dashoffset: 200; opacity: 0.2; }
+  50%  { opacity: 0.7; }
+  100% { stroke-dashoffset: 0; opacity: 0.2; }
+}
+@keyframes nodeGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(0,194,224,0.4)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(0,194,224,0.8)); }
+}
+@keyframes nodePulse {
+  0%, 100% { r: 7; }
+  50%       { r: 9; }
+}
+@keyframes centerGlow {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(0,194,224,0.5)); }
+  50%       { filter: drop-shadow(0 0 24px rgba(74,222,92,0.7)); }
+}
+
+.flow-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 8 6;
+  stroke-dashoffset: 200;
+  animation: flowPulse 3s ease-in-out infinite;
+}
+.flow-line-2 {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 8 6;
+  stroke-dashoffset: 200;
+  animation: flowPulse2 3s ease-in-out infinite;
+}
+.user-node {
+  animation: nodeGlow 2.5s ease-in-out infinite;
+}
+.provider-node {
+  animation: nodeGlow 2.5s ease-in-out infinite 0.8s;
+}
+.center-ring {
+  animation: centerGlow 3s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 2 — Three Power Lines (card grid)
+   ══════════════════════════════════════════ */
+.power-lines { padding: 80px 0; }
+.power-lines-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+@media (max-width: 768px) { .power-lines-grid { grid-template-columns: 1fr; } }
+.power-card {
+  padding: 40px 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(0,194,224,0.02);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 16px rgba(0,194,224,0.1);
+}
+.power-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient);
+  opacity: 0.6;
+}
+.power-num {
+  font-weight: 800;
+  font-size: 52px;
+  letter-spacing: -3px;
+  line-height: 1;
+  margin-bottom: 20px;
+  display: block;
+}
+.power-title {
+  font-weight: 800;
+  font-size: clamp(17px, 2vw, 21px);
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+.power-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 3 — Value Proposition
+   ══════════════════════════════════════════ */
+.value-prop .body-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 720px;
+  line-height: 1.7;
+}
+.value-prop .body-text p { margin-bottom: 20px; }
+.value-prop .body-text .highlight {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 20px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 4 — Problem
+   ══════════════════════════════════════════ */
+.problem .intro-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin-bottom: 40px;
+  line-height: 1.7;
+}
+.failure-list {
+  list-style: none;
+  max-width: 640px;
+  margin-bottom: 40px;
+}
+.failure-list li {
+  padding: 14px 0 14px 32px;
+  position: relative;
+  font-size: 17px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(0,194,224,0.06);
+}
+.failure-list li::before {
+  content: '\2715';
+  position: absolute;
+  left: 0;
+  color: #E05050;
+  font-weight: 700;
+  font-size: 14px;
+}
+.problem .closing {
+  font-weight: 700;
+  font-size: 20px;
+  max-width: 640px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 5 — Market Shift (redesigned v3)
+   ══════════════════════════════════════════ */
+
+/* "Then" row: demoted but readable, no border or background */
+.shift .then-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 40px 0 8px;
+  padding: 10px 0;
+  opacity: 0.45;
+}
+.shift .then-label {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+.shift .then-step {
+  font-size: 14px;
+  color: var(--text-primary);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,0.3);
+}
+.shift .then-arrow { font-size: 12px; color: var(--text-secondary); }
+
+/* "Now" row: dominant */
+.shift .now-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin: 0 0 48px;
+  padding: 20px 0;
+}
+.shift .now-label {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+.shift .now-step {
+  padding: 10px 22px;
+  border-radius: 100px;
+  border: 1.5px solid rgba(0,194,224,0.35);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: rgba(0,194,224,0.04);
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.08), 0 0 14px rgba(0,194,224,0.18), 0 0 28px rgba(74,222,92,0.07);
+}
+.shift .now-arrow {
+  font-size: 18px;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+.shift .body-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 700px;
+  line-height: 1.7;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 6 — Capabilities
+   ══════════════════════════════════════════ */
+.capabilities .sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+}
+.cap-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 48px;
+  margin-bottom: 48px;
+}
+@media (max-width: 640px) { .cap-grid { grid-template-columns: 1fr; } }
+.cap-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  font-size: 17px;
+  color: var(--text-secondary);
+}
+.cap-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--bg);
+  font-weight: 800;
+}
+.capabilities .tagline {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -1px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 7 — How It Works
+   ══════════════════════════════════════════ */
+.how-it-works .sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 56px;
+  max-width: 600px;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
+  position: relative;
+}
+@media (max-width: 900px) { .steps { grid-template-columns: 1fr; } }
+.step {
+  position: relative;
+  padding: 28px 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(0,194,224,0.02);
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 16px rgba(0,194,224,0.1);
+}
+.step-num {
+  font-weight: 800;
+  font-size: 36px;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.step-title {
+  font-weight: 700;
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.step-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.step-example {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 10px;
+  opacity: 0.7;
+}
+.flow-label-bar {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 8 — Verticals
+   ══════════════════════════════════════════ */
+.verticals .sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 48px;
+  max-width: 680px;
+}
+.vert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+}
+.vert-card {
+  padding: 28px 20px;
+  border: 1px solid rgba(0,194,224,0.18);
+  border-radius: 14px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-secondary);
+  background: rgba(0,194,224,0.02);
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 16px rgba(0,194,224,0.1);
+}
+.vert-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 9 — BG8 Proof of Concept
+   ══════════════════════════════════════════ */
+.bg8-proof-inner {
+  display: flex;
+  gap: 64px;
+  align-items: flex-start;
+}
+.bg8-proof-text { flex: 1 1 0; min-width: 0; }
+.bg8-visual {
+  flex-shrink: 0;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: sticky;
+  top: 88px;
+}
+.bg8-phone-cluster {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  width: 100%;
+  justify-content: center;
+}
+.bg8-phone {
+  flex: 1;
+  max-height: 380px;
+  width: auto;
+  display: block;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 90%);
+  mask-image: linear-gradient(to bottom, black 0%, black 50%, transparent 90%);
+}
+.bg8-streamline {
+  width: 100%;
+  margin-top: -8px;
+}
+@media (max-width: 900px) {
+  .bg8-proof-inner { flex-direction: column; }
+  .bg8-visual { width: 100%; position: static; }
+  .bg8-phone { max-height: 260px; }
+}
+.bg8-proof .body-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 720px;
+  line-height: 1.7;
+  margin-bottom: 36px;
+}
+.demo-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 40px;
+  list-style: none;
+  margin-bottom: 36px;
+  max-width: 640px;
+}
+@media (max-width: 640px) { .demo-list { grid-template-columns: 1fr; } }
+.demo-list li {
+  padding: 10px 0 10px 28px;
+  position: relative;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+.demo-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gradient);
+}
+.bg8-proof .example-block {
+  padding: 24px 28px;
+  border-left: 3px solid var(--teal);
+  background: rgba(0,194,224,0.03);
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 36px;
+  max-width: 640px;
+}
+.bg8-proof .example-block p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.bg8-proof .example-block .quote {
+  font-style: italic;
+  color: var(--text-primary);
+  font-size: 17px;
+  margin-bottom: 12px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 10 — Business Case
+   ══════════════════════════════════════════ */
+.biz-case .body-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 700px;
+  line-height: 1.7;
+}
+.biz-case .disclaimer {
+  font-size: 13px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  margin-top: 24px;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 11 — Partnership Models
+   ══════════════════════════════════════════ */
+.partnerships .cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+@media (max-width: 768px) { .partnerships .cards { grid-template-columns: 1fr; } }
+.partner-card {
+  padding: 36px 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(0,194,224,0.02);
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 16px rgba(0,194,224,0.1);
+}
+.partner-card .card-num {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.partner-card h3 {
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+.partner-card p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.partner-card .best-for {
+  font-size: 14px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* ══════════════════════════════════════════
+   SECTION 12 — Why Partners Choose VLS
+   ══════════════════════════════════════════ */
+.why-vls .benefit-list {
+  list-style: none;
+  max-width: 640px;
+  margin-top: 36px;
+}
+.why-vls .benefit-list li {
+  padding: 16px 0 16px 32px;
+  position: relative;
+  font-size: 17px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(0,194,224,0.06);
+}
+.why-vls .benefit-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gradient);
+}
+
+/* ══════════════════════════════════════════
+   SECTION 13 — Web Summit CTA
+   ══════════════════════════════════════════ */
+.websummit {
+  text-align: center;
+  padding: 100px 0;
+}
+.websummit .section-headline { max-width: 600px; margin: 0 auto 24px; }
+.websummit .body-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+.websummit .btn-group { justify-content: center; }
+
+/* ══════════════════════════════════════════
+   SECTION 14 — Final CTA
+   ══════════════════════════════════════════ */
+.final-cta {
+  text-align: center;
+  padding: 100px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+.final-cta-aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(500px circle at 50% 60%, rgba(0,194,224,0.10), transparent),
+    radial-gradient(400px circle at 60% 40%, rgba(74,222,92,0.08), transparent);
+}
+.final-cta .inner { position: relative; }
+.final-cta .section-headline { max-width: 600px; margin: 0 auto 20px; }
+.final-cta .body-text {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 620px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+.final-cta .btn-group { justify-content: center; }
+
+/* ── Footer accent bar ── */
+.accent-bar {
+  height: 5px;
+  background: var(--gradient);
+  opacity: 0.55;
+}
+
+/* ── Footer ── */
+footer {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════════════════
+   V17 NEW STYLES — APPENDED BELOW
+   ══════════════════════════════════════════ */
+
+/* ── S3: Platform Stack Diagram ── */
+@keyframes stackFlowDown {
+  0%   { stroke-dashoffset: 60; opacity: 0.2; }
+  50%  { opacity: 0.85; }
+  100% { stroke-dashoffset: 0; opacity: 0.2; }
+}
+.platform-two-col {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+}
+.platform-text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.platform-text .section-headline {
+  text-align: left;
+  margin-bottom: 24px;
+}
+.platform-diagram {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+@media (max-width: 860px) {
+  .platform-two-col { flex-direction: column; gap: 32px; }
+  .platform-text .section-headline { text-align: center; }
+}
+.platform-stack-wrap {
+  width: 100%;
+  max-width: 620px;
+  overflow: visible;
+}
+.stack-flow-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  stroke-dashoffset: 60;
+  animation: stackFlowDown 2.4s ease-in-out infinite;
+}
+
+/* ── Hub-and-spoke diagram animations ── */
+@keyframes hubFlowLR {
+  0%   { stroke-dashoffset: 80; opacity: 0.25; }
+  50%  { opacity: 0.85; }
+  100% { stroke-dashoffset: 0; opacity: 0.25; }
+}
+@keyframes hubGlow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(0,194,224,0.45)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(74,222,92,0.75)); }
+}
+@keyframes spokeNodeGlow {
+  0%, 100% { opacity: 0.65; }
+  50%       { opacity: 1; }
+}
+.hub-flow-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 7 5;
+  animation: hubFlowLR 2.6s ease-in-out infinite;
+}
+.hub-center-ring {
+  animation: hubGlow 3s ease-in-out infinite;
+}
+.hub-spoke-node {
+  animation: spokeNodeGlow 2.8s ease-in-out infinite;
+}
+
+/* ── S4: Problem Two-Column Layout ── */
+.problem-two-col {
+  display: flex;
+  gap: 56px;
+  align-items: center;
+}
+.problem-text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.problem-visual {
+  flex: 0 0 auto;
+}
+@media (max-width: 860px) {
+  .problem-two-col { flex-direction: column; gap: 32px; }
+  .problem-visual { display: none; }
+}
+
+/* ── S4: Problem Failure Cards ── */
+.failure-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+@media (max-width: 900px) { .failure-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .failure-grid { grid-template-columns: 1fr; } }
+.failure-card {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid rgba(220,60,60,0.5);
+  border-radius: 0 10px 10px 0;
+  padding: 18px 20px 18px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.failure-card-x {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(220,80,80,0.85);
+  line-height: 1.6;
+  margin-top: 1px;
+}
+.failure-card-text {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.failure-gap-banner {
+  width: 100%;
+  padding: 18px 32px;
+  border-radius: 100px;
+  background: linear-gradient(90deg, #00C2E0, #4ADE5C);
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--bg);
+  letter-spacing: -0.3px;
+  margin-bottom: 40px;
+}
+
+/* ── S10: Business Case Two-Column Layout ── */
+.biz-case-two-col {
+  display: flex;
+  gap: 56px;
+  align-items: center;
+}
+.biz-case-text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.biz-case-visual {
+  flex: 0 0 auto;
+}
+@media (max-width: 860px) {
+  .biz-case-two-col { flex-direction: column; gap: 32px; }
+  .biz-case-visual { display: none; }
+}
+
+/* ── S10: Business Case Comparison ── */
+.biz-compare-wrap {
+  margin-top: 56px;
+}
+.biz-compare-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+@media (max-width: 640px) { .biz-compare-panels { grid-template-columns: 1fr; } }
+.biz-panel {
+  border-radius: 16px;
+  padding: 32px 28px;
+}
+.biz-panel-dim {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.biz-panel-dim .biz-panel-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 16px;
+}
+.biz-panel-lit {
+  background: rgba(0,194,224,0.04);
+  border: 1px solid rgba(0,194,224,0.22);
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.07), 0 0 24px rgba(0,194,224,0.12);
+}
+.biz-panel-lit .biz-panel-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 16px;
+}
+.biz-panel h4 {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.8px;
+  margin-bottom: 20px;
+}
+.biz-panel-dim h4 { color: rgba(232,245,242,0.4); }
+.biz-panel-lit h4 { color: var(--text-primary); }
+.biz-panel-bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.biz-panel-dim .biz-panel-bullets li {
+  font-size: 15px;
+  color: rgba(123,181,168,0.45);
+  padding-left: 20px;
+  position: relative;
+}
+.biz-panel-dim .biz-panel-bullets li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: rgba(220,80,80,0.45);
+  font-size: 13px;
+}
+.biz-panel-lit .biz-panel-bullets li {
+  font-size: 15px;
+  color: var(--text-secondary);
+  padding-left: 22px;
+  position: relative;
+}
+.biz-panel-lit .biz-panel-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #00C2E0, #4ADE5C);
+}
+.biz-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 640px) { .biz-stat-cards { grid-template-columns: 1fr; } }
+.biz-stat-card {
+  background: rgba(0,194,224,0.04);
+  border: 1px solid rgba(0,194,224,0.15);
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 14px rgba(0,194,224,0.08);
+}
+.biz-stat-value {
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -1px;
+  background: linear-gradient(90deg, #00C2E0, #4ADE5C);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+.biz-stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ── S12: Why VLS Two-Column Layout ── */
+.why-vls-two-col {
+  display: flex;
+  gap: 56px;
+  align-items: center;
+}
+.why-vls-left {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.why-vls-right {
+  flex: 0 0 auto;
+}
+@media (max-width: 860px) {
+  .why-vls-two-col { flex-direction: column; gap: 32px; }
+  .why-vls-right { display: none; }
+}
+
+/* ── S12: Why VLS Icon Card Grid ── */
+.why-vls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 36px;
+}
+@media (max-width: 560px) { .why-vls-grid { grid-template-columns: 1fr; } }
+.why-vls-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 22px 22px;
+  border: 1px solid rgba(0,194,224,0.18);
+  border-radius: 14px;
+  background: rgba(0,194,224,0.02);
+  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 16px rgba(0,194,224,0.1);
+}
+.why-vls-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0,194,224,0.15), rgba(74,222,92,0.12));
+  border: 1px solid rgba(0,194,224,0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.why-vls-body {}
+.why-vls-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.2px;
+}
+.why-vls-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+
+<!-- ════ NAV ════ -->
+<nav>
+  <div class="container nav-inner">
+    <div class="nav-logo"><span class="gradient-text">VLS ENGINE</span></div>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+    <div class="nav-links">
+      <a href="#how-it-works">How It Works</a>
+      <a href="#platform">Platform</a>
+      <a href="#partners">Partners</a>
+      <button class="nav-cta">Book a Meeting</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ════ SECTION 1 — Hero ════ -->
+<section class="hero">
+  <div class="hero-aurora"></div>
+  <div class="container">
+    <div class="hero-inner">
+
+      <!-- Text content -->
+      <div class="hero-content">
+        <!-- VLS circle insignia (no wordmark) -->
+        <div class="hero-glyph" aria-hidden="true">
+          <svg width="120" height="120" viewBox="105 105 445 445" overflow="visible" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="vlsGrad" x1="325" y1="168.36" x2="325" y2="580.15" gradientTransform="translate(0 652) scale(1 -1)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#00C2E0"/>
+                <stop offset="1" stop-color="#4ADE5C"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#vlsGrad)" d="M410.51,394.74l30.24-12.6v-56.47l-30.24-13.1v82.17ZM326.23,438.18l-15.09-8.4v-194.43l-101.73,89.12,116.82-192.06,117.73,180.15-102.29-77.21v192.14l-15.44,10.68h0ZM357.65,426.87l35.22-22.89v-102.01l-35.22-27.7v152.6h0ZM289.55,423.3l-31.08-17.64v-95.47l36.26-32.44-5.18,145.55h0ZM240.83,396.42l-30.24-12.6v-45.06l30.24-19.65v77.3h0ZM325.01,483.64l-29.69-1.92-29.13-5.72-28.04-9.42-26.41-12.92-24.31-16.21-21.75-19.18-18.77-21.8-15.46-24.01-11.25-24.46c-.4-.86-.74-1.76-1.01-2.68l-7.21-24.29c-.2-.68-.38-1.42-.51-2.16l-.11-.68-3.63-24.95c-.14-.96-.21-1.94-.21-2.92v-25.17c0-.98.07-1.96.21-2.92l3.63-24.94c.14-.96.35-1.92.63-2.86l7.19-24.25c.28-.94.62-1.85,1.02-2.71l11.24-24.45,15.46-24.01,18.78-21.8,21.74-19.18,24.31-16.2,26.41-12.93,28.04-9.41,29.14-5.72,29.69-1.92,29.69,1.92,29.13,5.72,28.04,9.41,26.42,12.93,24.3,16.2,21.74,19.18,18.78,21.8,15.45,24.01,11.23,24.42c.42.9.77,1.84,1.05,2.8l7.22,24.33c.26.91.45,1.79.58,2.67l3.64,25c.14.91.21,1.91.21,2.91v25.17c0,1-.08,2.01-.23,2.99l-3.62,24.87c-.14.94-.33,1.81-.59,2.72l-.04.12-7.2,24.27c-.26.9-.62,1.84-1.04,2.74l-11.23,24.42-15.45,24.01-18.79,21.8-21.74,19.18-24.31,16.21-26.41,12.92-28.04,9.42-29.13,5.72-29.69,1.92h.03ZM298.4,458.05l26.61,1.72,26.61-1.72,26.09-5.12,25.08-8.42,23.59-11.54,21.65-14.44,19.32-17.04,16.64-19.3,13.65-21.21,10.45-22.71,7.06-23.79,3.56-24.44v-24.61l-3.56-24.44-7.06-23.79-10.45-22.71-13.65-21.2-16.64-19.3-19.32-17.04-21.64-14.43-23.58-11.54-25.09-8.42-26.1-5.12-26.61-1.72-26.61,1.72-26.1,5.12-25.08,8.42-23.58,11.54-21.65,14.43-19.31,17.04-16.63,19.3-13.65,21.2-10.44,22.71-7.05,23.78-3.56,24.44v24.65l3.56,24.43,7.05,23.78,10.44,22.7,13.65,21.21,16.63,19.3,19.31,17.04,21.66,14.44,23.59,11.54,25.08,8.42,26.09,5.12h0Z"/>
+          </svg>
+        </div>
+        <div class="hero-badge"><span class="gradient-text">VLS ENGINE &middot; AI EXECUTION INFRASTRUCTURE</span></div>
+        <h1>Launch a <span class="gradient-text">production-ready AI commerce product</span> in Weeks&nbsp;&mdash;&nbsp;Not&nbsp;Months</h1>
+        <p class="hero-sub">VLS Engine helps organizations launch complex AI-powered commerce, marketplace, and workflow platforms faster, without building the full infrastructure from scratch.</p>
+        <p class="hero-sub">Turn voice or text intent into qualified requests, matched providers, bookings, approvals, follow-ups, and completed actions.</p>
+        <div class="btn-group">
+          <a href="#" class="btn-primary">Book a Meeting</a>
+          <a href="#" class="btn-ghost">See BG8 in Action</a>
+        </div>
+      </div>
+
+      <!-- Orchestration diagram -->
+      <div class="hero-diagram" aria-hidden="true">
+        <svg viewBox="0 0 440 380" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Gradient for lines and accents -->
+            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#00C2E0" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#4ADE5C" stop-opacity="0.8"/>
+            </linearGradient>
+            <linearGradient id="lineGradV" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#4ADE5C" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#00C2E0" stop-opacity="0.6"/>
+            </linearGradient>
+            <linearGradient id="centerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00C2E0"/>
+              <stop offset="100%" stop-color="#4ADE5C"/>
+            </linearGradient>
+            <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00C2E0" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#00C2E0" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="glow-sm">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glow-lg">
+              <feGaussianBlur stdDeviation="6" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- ── Layer labels ── -->
+          <text x="16" y="66" font-family="Outfit,sans-serif" font-size="11" font-weight="600" fill="#7BB5A8" letter-spacing="2" text-transform="uppercase" opacity="0.7">USERS</text>
+          <text x="16" y="198" font-family="Outfit,sans-serif" font-size="11" font-weight="600" fill="#00C2E0" letter-spacing="2" opacity="0.9">VLS ENGINE</text>
+          <text x="16" y="330" font-family="Outfit,sans-serif" font-size="11" font-weight="600" fill="#7BB5A8" letter-spacing="2" opacity="0.7">PROVIDERS</text>
+
+          <!-- ── Horizontal tier lines (faint guides) ── -->
+          <line x1="100" y1="60" x2="420" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <line x1="100" y1="190" x2="420" y2="190" stroke="rgba(0,194,224,0.08)" stroke-width="1"/>
+          <line x1="100" y1="324" x2="420" y2="324" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+          <!-- ══ USER NODES (top row) ══ -->
+          <!-- User node 1 -->
+          <g class="user-node" filter="url(#glow-sm)">
+            <circle cx="170" cy="60" r="22" fill="rgba(20,28,34,0.9)" stroke="#00C2E0" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="170" y="55" text-anchor="middle" font-family="Outfit,sans-serif" font-size="16" fill="#00C2E0">&#x1F4AC;</text>
+            <text x="170" y="72" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="#7BB5A8">Voice</text>
+          </g>
+
+          <!-- User node 2 -->
+          <g class="user-node" filter="url(#glow-sm)" style="animation-delay:0.4s">
+            <circle cx="280" cy="60" r="22" fill="rgba(20,28,34,0.9)" stroke="#00C2E0" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="280" y="55" text-anchor="middle" font-family="Outfit,sans-serif" font-size="16" fill="#00C2E0">&#x2328;&#xFE0F;</text>
+            <text x="280" y="72" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="#7BB5A8">Text</text>
+          </g>
+
+          <!-- User node 3 -->
+          <g class="user-node" filter="url(#glow-sm)" style="animation-delay:0.8s">
+            <circle cx="390" cy="60" r="22" fill="rgba(20,28,34,0.9)" stroke="#00C2E0" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="390" y="55" text-anchor="middle" font-family="Outfit,sans-serif" font-size="16" fill="#00C2E0">&#x1F4F1;</text>
+            <text x="390" y="72" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="#7BB5A8">Mobile</text>
+          </g>
+
+          <!-- ══ FLOW LINES: users → engine ══ -->
+          <!-- User 1 → Engine -->
+          <path class="flow-line" d="M 170 84 C 170 130, 220 160, 220 168"
+            stroke="url(#lineGradV)" style="animation-delay:0s; animation-duration:2.8s"/>
+          <!-- User 2 → Engine -->
+          <path class="flow-line" d="M 280 84 C 280 130, 280 150, 280 168"
+            stroke="url(#lineGradV)" style="animation-delay:0.5s; animation-duration:2.8s"/>
+          <!-- User 3 → Engine -->
+          <path class="flow-line" d="M 390 84 C 390 130, 340 160, 340 168"
+            stroke="url(#lineGradV)" style="animation-delay:1s; animation-duration:2.8s"/>
+
+          <!-- ══ VLS ENGINE (center) ══ -->
+          <!-- Outer glow halo -->
+          <circle cx="280" cy="190" r="70" fill="url(#centerGlow)"/>
+
+          <!-- Engine ring -->
+          <g class="center-ring" filter="url(#glow-lg)">
+            <circle cx="280" cy="190" r="50" fill="rgba(20,28,34,0.95)" stroke="url(#centerGrad)" stroke-width="2"/>
+            <!-- Inner ring -->
+            <circle cx="280" cy="190" r="36" fill="none" stroke="rgba(0,194,224,0.15)" stroke-width="1" stroke-dasharray="4 3"/>
+
+            <!-- VLS text -->
+            <text x="280" y="185" text-anchor="middle" font-family="Outfit,sans-serif" font-size="13" font-weight="800" letter-spacing="2" fill="url(#centerGrad)">VLS</text>
+            <text x="280" y="200" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" font-weight="600" letter-spacing="1.5" fill="#7BB5A8">ENGINE</text>
+          </g>
+
+          <!-- Qualifier node (left of engine) -->
+          <g filter="url(#glow-sm)" style="animation: nodeGlow 2s ease-in-out infinite 0.3s">
+            <circle cx="180" cy="190" r="18" fill="rgba(20,28,34,0.9)" stroke="#00C2E0" stroke-width="1.2" stroke-opacity="0.4"/>
+            <text x="180" y="186" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="#7BB5A8">Qualify</text>
+            <text x="180" y="198" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="#7BB5A8">&amp; Match</text>
+          </g>
+          <line x1="198" y1="190" x2="228" y2="190" stroke="url(#lineGrad)" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+
+          <!-- Execute node (right of engine) -->
+          <g filter="url(#glow-sm)" style="animation: nodeGlow 2s ease-in-out infinite 0.6s">
+            <circle cx="380" cy="190" r="18" fill="rgba(20,28,34,0.9)" stroke="#4ADE5C" stroke-width="1.2" stroke-opacity="0.4"/>
+            <text x="380" y="186" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="#7BB5A8">Execute</text>
+            <text x="380" y="198" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="#7BB5A8">&amp; Book</text>
+          </g>
+          <line x1="332" y1="190" x2="362" y2="190" stroke="url(#lineGrad)" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+
+          <!-- ══ FLOW LINES: engine → providers ══ -->
+          <!-- Engine → Provider 1 -->
+          <path class="flow-line-2" d="M 220 213 C 220 255, 170 290, 170 302"
+            stroke="url(#lineGradV)" style="animation-delay:0.3s; animation-duration:3.2s"/>
+          <!-- Engine → Provider 2 -->
+          <path class="flow-line-2" d="M 280 242 C 280 268, 280 288, 280 302"
+            stroke="url(#lineGradV)" style="animation-delay:0.9s; animation-duration:3.2s"/>
+          <!-- Engine → Provider 3 -->
+          <path class="flow-line-2" d="M 340 213 C 340 255, 390 290, 390 302"
+            stroke="url(#lineGradV)" style="animation-delay:1.5s; animation-duration:3.2s"/>
+
+          <!-- ══ PROVIDER NODES (bottom row) ══ -->
+          <!-- Provider 1 -->
+          <g class="provider-node" filter="url(#glow-sm)">
+            <circle cx="170" cy="324" r="22" fill="rgba(20,28,34,0.9)" stroke="#4ADE5C" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="170" y="319" text-anchor="middle" font-family="Outfit,sans-serif" font-size="16" fill="#4ADE5C">&#x1F3E5;</text>
+            <text x="170" y="336" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="#7BB5A8">Services</text>
+          </g>
+
+          <!-- Provider 2 -->
+          <g class="provider-node" filter="url(#glow-sm)" style="animation-delay:0.4s">
+            <circle cx="280" cy="324" r="22" fill="rgba(20,28,34,0.9)" stroke="#4ADE5C" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="280" y="319" text-anchor="middle" font-family="Outfit,sans-serif" font-size="16" fill="#4ADE5C">&#x1F3EA;</text>
+            <text x="280" y="336" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="#7BB5A8">Commerce</text>
+          </g>
+
+          <!-- Provider 3 -->
+          <g class="provider-node" filter="url(#glow-sm)" style="animation-delay:0.8s">
+            <circle cx="390" cy="324" r="22" fill="rgba(20,28,34,0.9)" stroke="#4ADE5C" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="390" y="319" text-anchor="middle" font-family="Outfit,sans-serif" font-size="16" fill="#4ADE5C">&#x1F4BC;</text>
+            <text x="390" y="336" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="#7BB5A8">Enterprise</text>
+          </g>
+
+          <!-- ── Bottom label ── -->
+          <text x="280" y="374" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" font-weight="600" letter-spacing="1.5" fill="#7BB5A8" opacity="0.5">AI-TO-AI ORCHESTRATION</text>
+        </svg>
+      </div>
+      <!-- end .hero-diagram -->
+
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 2 — Three Power Lines ════ -->
+<section class="power-lines">
+  <div class="container">
+    <div class="power-lines-grid">
+      <div class="power-card">
+        <span class="power-num gradient-text">01</span>
+        <div class="power-title">Personalized results for every user.</div>
+        <div class="power-desc">Memory + history + stated criteria. Not generic search results.</div>
+      </div>
+      <div class="power-card">
+        <span class="power-num gradient-text">02</span>
+        <div class="power-title">Every business runs its own agent, no coding required.</div>
+        <div class="power-desc">Vendors configure, control, and update their AI. We provide the layer.</div>
+      </div>
+      <div class="power-card">
+        <span class="power-num gradient-text">03</span>
+        <div class="power-title">Requests turn into real bookings, automatically.</div>
+        <div class="power-desc">Qualification &rarr; AI-to-AI &rarr; match &rarr; book &rarr; audit. End-to-end.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 3 — Value Proposition ════ -->
+<section class="value-prop section-pad" id="platform">
+  <div class="container">
+    <div class="eyebrow">The Platform</div>
+    <div class="platform-two-col">
+      <div class="platform-text">
+        <h2 class="section-headline">Build Less. Launch Faster.<br>Turn Intent Into Revenue.</h2>
+        <div class="body-text">
+          <p>VLS Engine gives partners the infrastructure to deploy AI-powered execution platforms across services, restaurants, travel, events, delivery, real estate, government services, enterprise workflows, and more.</p>
+          <p>This is not another SaaS tool.</p>
+          <p class="highlight">VLS Engine is execution infrastructure for the AI era.</p>
+        </div>
+      </div>
+      <div class="platform-diagram">
+        <!-- VLS Engine: Customer → [Customer Agent ↔ Vendor Agent] → Vendor -->
+        <svg class="platform-stack-wrap" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="Outfit,sans-serif" aria-hidden="true">
+          <defs>
+            <linearGradient id="pd-box" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00C2E0"/>
+              <stop offset="100%" stop-color="#4ADE5C"/>
+            </linearGradient>
+            <linearGradient id="pd-orch" gradientUnits="userSpaceOnUse" x1="330" y1="230" x2="470" y2="230">
+              <stop offset="0%" stop-color="#00C2E0"/>
+              <stop offset="100%" stop-color="#4ADE5C"/>
+            </linearGradient>
+            <!-- Badge gradient: in original SVG coordinate space (650×650 canvas) -->
+            <linearGradient id="pd-badge-grad" gradientUnits="userSpaceOnUse" x1="134" y1="149" x2="519" y2="484">
+              <stop offset="0%" stop-color="#00C2E0"/>
+              <stop offset="100%" stop-color="#4ADE5C"/>
+            </linearGradient>
+            <filter id="pd-glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="10" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <!-- Arrowhead markers -->
+            <marker id="arr-teal-end" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <polygon points="0 0, 7 3.5, 0 7" fill="#00C2E0" opacity="0.85"/>
+            </marker>
+            <marker id="arr-teal-start" markerWidth="7" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+              <polygon points="0 0, 7 3.5, 0 7" fill="#00C2E0" opacity="0.85"/>
+            </marker>
+            <marker id="arr-green-end" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <polygon points="0 0, 7 3.5, 0 7" fill="#4ADE5C" opacity="0.85"/>
+            </marker>
+            <marker id="arr-green-start" markerWidth="7" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+              <polygon points="0 0, 7 3.5, 0 7" fill="#4ADE5C" opacity="0.85"/>
+            </marker>
+            <marker id="arr-orch-end" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <polygon points="0 0, 7 3.5, 0 7" fill="#4ADE5C" opacity="0.85"/>
+            </marker>
+            <marker id="arr-orch-start" markerWidth="7" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+              <polygon points="0 0, 7 3.5, 0 7" fill="#00C2E0" opacity="0.85"/>
+            </marker>
+            <filter id="pd-box-glow" x="-10%" y="-10%" width="120%" height="120%">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- VLS Engine branded box — taller to give header room to breathe -->
+          <rect x="146" y="30" width="508" height="338" rx="22" fill="url(#pd-box)" opacity="0.05" filter="url(#pd-box-glow)"/>
+          <rect x="148" y="32" width="504" height="334" rx="20" fill="#111d26"/>
+          <rect x="148" y="32" width="504" height="334" rx="20" fill="none" stroke="url(#pd-box)" stroke-width="1.5" opacity="0.8"/>
+          <rect x="148" y="32" width="504" height="155" rx="20" fill="url(#pd-box)" opacity="0.03"/>
+
+          <!-- VLS Engine insignia — moved down for better vertical centering -->
+          <g transform="translate(400,102) scale(0.1124) translate(-325,-325)">
+            <path fill="url(#pd-badge-grad)" d="M410.51,394.74l30.24-12.6v-56.47l-30.24-13.1v82.17ZM326.23,438.18l-15.09-8.4v-194.43l-101.73,89.12,116.82-192.06,117.73,180.15-102.29-77.21v192.14l-15.44,10.68h0ZM357.65,426.87l35.22-22.89v-102.01l-35.22-27.7v152.6h0ZM289.55,423.3l-31.08-17.64v-95.47l36.26-32.44-5.18,145.55h0ZM240.83,396.42l-30.24-12.6v-45.06l30.24-19.65v77.3h0ZM325.01,483.64l-29.69-1.92-29.13-5.72-28.04-9.42-26.41-12.92-24.31-16.21-21.75-19.18-18.77-21.8-15.46-24.01-11.25-24.46c-.4-.86-.74-1.76-1.01-2.68l-7.21-24.29c-.2-.68-.38-1.42-.51-2.16l-.11-.68-3.63-24.95c-.14-.96-.21-1.94-.21-2.92v-25.17c0-.98.07-1.96.21-2.92l3.63-24.94c.14-.96.35-1.92.63-2.86l7.19-24.25c.28-.94.62-1.85,1.02-2.71l11.24-24.45,15.46-24.01,18.78-21.8,21.74-19.18,24.31-16.2,26.41-12.93,28.04-9.41,29.14-5.72,29.69-1.92,29.69,1.92,29.13,5.72,28.04,9.41,26.42,12.93,24.3,16.2,21.74,19.18,18.78,21.8,15.45,24.01,11.23,24.42c.42.9.77,1.84,1.05,2.8l7.22,24.33c.26.91.45,1.79.58,2.67l3.64,25c.14.91.21,1.91.21,2.91v25.17c0,1-.08,2.01-.23,2.99l-3.62,24.87c-.14.94-.33,1.81-.59,2.72l-.04.12-7.2,24.27c-.26.9-.62,1.84-1.04,2.74l-11.23,24.42-15.45,24.01-18.79,21.8-21.74,19.18-24.31,16.21-26.41,12.92-28.04,9.42-29.13,5.72-29.69,1.92h.03ZM298.4,458.05l26.61,1.72,26.61-1.72,26.09-5.12,25.08-8.42,23.59-11.54,21.65-14.44,19.32-17.04,16.64-19.3,13.65-21.21,10.45-22.71,7.06-23.79,3.56-24.44v-24.61l-3.56-24.44-7.06-23.79-10.45-22.71-13.65-21.2-16.64-19.3-19.32-17.04-21.64-14.43-23.58-11.54-25.09-8.42-26.1-5.12-26.61-1.72-26.61,1.72-26.1,5.12-25.08,8.42-23.58,11.54-21.65,14.43-19.31,17.04-16.63,19.3-13.65,21.2-10.44,22.71-7.05,23.78-3.56,24.44v24.65l3.56,24.43,7.05,23.78,10.44,22.7,13.65,21.21,16.63,19.3,19.31,17.04,21.66,14.44,23.59,11.54,25.08,8.42,26.09,5.12h0Z"/>
+          </g>
+          <text x="400" y="140" font-size="18" font-weight="800" fill="white" text-anchor="middle" letter-spacing="0.5">VLS engine</text>
+          <text x="400" y="163" font-size="10" font-weight="600" fill="rgba(0,194,224,0.55)" text-anchor="middle" letter-spacing="3">CONNECT · ORCHESTRATE · EXECUTE</text>
+
+          <!-- Customer Agent (inside box, left) — sparkle icon -->
+          <circle cx="280" cy="230" r="36" fill="#00C2E0" opacity="0.06" filter="url(#pd-glow)"/>
+          <circle cx="280" cy="230" r="24" fill="#0d1e2a" stroke="#00C2E0" stroke-width="1.5"/>
+          <path d="M280,219 L282,228 L291,230 L282,232 L280,241 L278,232 L269,230 L278,228 Z" fill="#00C2E0" opacity="0.9"/>
+          <circle cx="280" cy="224" r="1.5" fill="#00C2E0" opacity="0.5"/>
+          <circle cx="286" cy="224" r="1.5" fill="#00C2E0" opacity="0.5"/>
+          <text x="280" y="272" font-size="14" font-weight="700" fill="#00C2E0" text-anchor="middle">Customer</text>
+          <text x="280" y="289" font-size="14" font-weight="700" fill="#00C2E0" text-anchor="middle">Agent</text>
+
+          <!-- Vendor Agent (inside box, right) — sparkle icon -->
+          <circle cx="520" cy="230" r="36" fill="#4ADE5C" opacity="0.06" filter="url(#pd-glow)"/>
+          <circle cx="520" cy="230" r="24" fill="#0d1e2a" stroke="#4ADE5C" stroke-width="1.5"/>
+          <path d="M520,219 L522,228 L531,230 L522,232 L520,241 L518,232 L509,230 L518,228 Z" fill="#4ADE5C" opacity="0.9"/>
+          <circle cx="520" cy="224" r="1.5" fill="#4ADE5C" opacity="0.5"/>
+          <circle cx="526" cy="224" r="1.5" fill="#4ADE5C" opacity="0.5"/>
+          <text x="520" y="272" font-size="14" font-weight="700" fill="#4ADE5C" text-anchor="middle">Vendor</text>
+          <text x="520" y="289" font-size="14" font-weight="700" fill="#4ADE5C" text-anchor="middle">Agent</text>
+
+          <!-- ORCHESTRATE arrow (single bidirectional) — 26px gap each side from agent circles -->
+          <line x1="330" y1="230" x2="470" y2="230" stroke="url(#pd-orch)" stroke-width="1.5"
+            marker-start="url(#arr-orch-start)" marker-end="url(#arr-orch-end)"/>
+          <rect x="348" y="201" width="104" height="15" rx="3" fill="#0c1820" opacity="0.9"/>
+          <text x="400" y="212" font-size="11" font-weight="700" fill="rgba(255,255,255,0.65)" text-anchor="middle" letter-spacing="2">ORCHESTRATE</text>
+
+          <!-- Customer figure (far left, outside box) — person icon -->
+          <circle cx="60" cy="221" r="9" fill="none" stroke="#00C2E0" stroke-width="1.5" opacity="0.85"/>
+          <path d="M38,243 Q60,229 82,243" stroke="#00C2E0" stroke-width="1.5" fill="none" opacity="0.85"/>
+          <circle cx="60" cy="230" r="20" fill="#00C2E0" opacity="0.06"/>
+          <text x="60" y="272" font-size="14" font-weight="700" fill="#00C2E0" text-anchor="middle">Customer</text>
+          <text x="60" y="289" font-size="13" fill="rgba(0,194,224,0.6)" text-anchor="middle">Requests a service</text>
+
+          <!-- REQUEST arrow (single bidirectional) — 22px gap from customer edge, 30px from agent edge -->
+          <line x1="102" y1="230" x2="228" y2="230" stroke="#00C2E0" stroke-width="1.5" opacity="0.8"
+            marker-start="url(#arr-teal-start)" marker-end="url(#arr-teal-end)"/>
+          <rect x="122" y="201" width="84" height="15" rx="3" fill="#0c1820" opacity="0.9"/>
+          <text x="164" y="212" font-size="11" font-weight="700" fill="rgba(255,255,255,0.65)" text-anchor="middle" letter-spacing="2">REQUEST</text>
+
+          <!-- Vendor figure (far right, outside box) — grid icon 24×24 -->
+          <rect x="728" y="218" width="24" height="24" rx="4" fill="none" stroke="#4ADE5C" stroke-width="1.5" opacity="0.85"/>
+          <line x1="736" y1="218" x2="736" y2="242" stroke="#4ADE5C" stroke-width="1" opacity="0.5"/>
+          <line x1="744" y1="218" x2="744" y2="242" stroke="#4ADE5C" stroke-width="1" opacity="0.5"/>
+          <line x1="728" y1="226" x2="752" y2="226" stroke="#4ADE5C" stroke-width="1" opacity="0.5"/>
+          <line x1="728" y1="234" x2="752" y2="234" stroke="#4ADE5C" stroke-width="1" opacity="0.5"/>
+          <circle cx="740" cy="230" r="20" fill="#4ADE5C" opacity="0.05"/>
+          <text x="740" y="272" font-size="14" font-weight="700" fill="#4ADE5C" text-anchor="middle">Vendor</text>
+          <text x="740" y="289" font-size="13" fill="rgba(74,222,92,0.6)" text-anchor="middle">Delivers service</text>
+
+          <!-- FULFIL arrow (single bidirectional) — 28px gap from agent edge, 22px from vendor icon -->
+          <line x1="572" y1="230" x2="706" y2="230" stroke="#4ADE5C" stroke-width="1.5" opacity="0.8"
+            marker-start="url(#arr-green-start)" marker-end="url(#arr-green-end)"/>
+          <rect x="605" y="201" width="68" height="15" rx="3" fill="#0c1820" opacity="0.9"/>
+          <text x="639" y="212" font-size="11" font-weight="700" fill="rgba(255,255,255,0.65)" text-anchor="middle" letter-spacing="2">FULFIL</text>
+
+          <!-- Animated particles — both directions on all three arrows -->
+          <!-- REQUEST: left→right and right→left -->
+          <circle r="3.5" fill="#00C2E0" opacity="0.9"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0s" path="M102,230 L228,230"/></circle>
+          <circle r="3" fill="#00C2E0" opacity="0.6"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.9s" path="M228,230 L102,230"/></circle>
+          <!-- ORCHESTRATE: left→right and right→left -->
+          <circle r="3" fill="#4ADE5C" opacity="0.85"><animateMotion dur="1.3s" repeatCount="indefinite" begin="0.3s" path="M330,230 L470,230"/></circle>
+          <circle r="3" fill="#00C2E0" opacity="0.85"><animateMotion dur="1.3s" repeatCount="indefinite" begin="0.95s" path="M470,230 L330,230"/></circle>
+          <!-- FULFIL: left→right and right→left -->
+          <circle r="3.5" fill="#4ADE5C" opacity="0.9"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.6s" path="M572,230 L706,230"/></circle>
+          <circle r="3" fill="#4ADE5C" opacity="0.6"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1.5s" path="M706,230 L572,230"/></circle>
+        </svg>
+      </div>
+    </div><!-- end platform-two-col -->
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 4 — Problem ════ -->
+<section class="problem section-pad">
+  <div class="container">
+    <div class="eyebrow">The Problem</div>
+    <h2 class="section-headline">AI Can Talk. Most Platforms<br>Still Cannot Execute.</h2>
+    <div class="problem-two-col">
+      <div class="problem-text">
+        <div class="intro-text">
+          <p>AI assistants can answer questions, summarize information, and recommend options.</p>
+          <p style="margin-top:12px">But when a user needs something done, most systems still stop too early.</p>
+        </div>
+
+        <ul class="failure-list">
+          <li>They do not qualify the request.</li>
+          <li>They do not match the right provider.</li>
+          <li>They do not coordinate timing.</li>
+          <li>They do not collect required documents.</li>
+          <li>They do not manage approvals, follow-ups, or booking flows.</li>
+          <li>They do not turn intent into completed action.</li>
+        </ul>
+        <p class="closing"><span class="gradient-text">VLS Engine closes the gap between AI conversation and real-world execution.</span></p>
+      </div><!-- end problem-text -->
+
+    </div><!-- end problem-two-col -->
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 5 — Market Shift ════ -->
+<section class="shift section-pad">
+  <div class="container">
+    <div class="eyebrow">The Shift</div>
+    <h2 class="section-headline">The Internet Is Moving<br>From Search to Execution</h2>
+    <div class="then-row">
+      <span class="then-label">Then</span>
+      <span class="then-step">Search</span><span class="then-arrow">&rarr;</span>
+      <span class="then-step">Click</span><span class="then-arrow">&rarr;</span>
+      <span class="then-step">Form</span><span class="then-arrow">&rarr;</span>
+      <span class="then-step">Wait</span>
+    </div>
+    <div class="now-row">
+      <span class="now-label">Now</span>
+      <span class="now-step">Intent</span><span class="now-arrow">&rarr;</span>
+      <span class="now-step">Qualification</span><span class="now-arrow">&rarr;</span>
+      <span class="now-step">Matching</span><span class="now-arrow">&rarr;</span>
+      <span class="now-step">Coordination</span><span class="now-arrow">&rarr;</span>
+      <span class="now-step">Execution</span>
+    </div>
+    <p class="body-text">VLS Engine powers this new flow. It allows organizations to launch AI-native platforms where users express what they need, and the system helps move that request toward completion.</p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 6 — Capabilities ════ -->
+<section class="capabilities section-pad">
+  <div class="container">
+    <div class="eyebrow">The Capabilities</div>
+    <h2 class="section-headline">The Execution Layer for<br>AI-Driven Organizations</h2>
+    <p class="sub">VLS Engine helps partners launch platforms that can:</p>
+    <div class="cap-grid">
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Understand user intent</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Qualify requests</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Match users with providers, vendors, or internal teams</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Coordinate next steps</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Support bookings and scheduling</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Route documents and information</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Manage notifications and follow-ups</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Support approvals and escalation paths</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Operate across multiple languages and regions</div>
+      <div class="cap-item"><div class="cap-check">&#10003;</div>Expand into multiple verticals over time</div>
+    </div>
+    <p class="tagline"><span class="gradient-text">In simple terms: VLS Engine turns intent into revenue-generating execution.</span></p>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 7 — How It Works ════ -->
+<section class="how-it-works section-pad" id="how-it-works">
+  <div class="container">
+    <div class="eyebrow">How It Works</div>
+    <h2 class="section-headline">From Intent to Execution</h2>
+    <p class="sub">VLS Engine supports the full journey from user request to completed action.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"><span class="gradient-text">1</span></div>
+        <div class="step-title">User Intent</div>
+        <div class="step-desc">A user says what they need in natural language through voice or text.</div>
+        <div class="step-example">"Find me an emergency dentist."</div>
+      </div>
+      <div class="step">
+        <div class="step-num"><span class="gradient-text">2</span></div>
+        <div class="step-title">Qualification</div>
+        <div class="step-desc">AI qualifies the request by collecting the right details, such as urgency, location, timing, preferences, budget, documents, or requirements.</div>
+      </div>
+      <div class="step">
+        <div class="step-num"><span class="gradient-text">3</span></div>
+        <div class="step-title">Matching</div>
+        <div class="step-desc">The system matches the request with the right providers, vendors, teams, services, or workflows.</div>
+      </div>
+      <div class="step">
+        <div class="step-num"><span class="gradient-text">4</span></div>
+        <div class="step-title">Vendor AI Agent Response</div>
+        <div class="step-desc">After matching, the matched vendor's AI agent receives the qualified request and responds based on the user's needs. The user can get provider-specific answers, availability, next steps, and booking options without starting the conversation from zero.</div>
+      </div>
+      <div class="step">
+        <div class="step-num"><span class="gradient-text">5</span></div>
+        <div class="step-title">Execution</div>
+        <div class="step-desc">The platform supports booking, follow-up, notifications, approvals, escalation, and workflow completion.</div>
+      </div>
+    </div>
+    <div class="flow-label-bar">User request &rarr; Qualification &rarr; Matching &rarr; Coordination &rarr; Booking &rarr; Follow-up</div>
+    <div class="btn-group" style="justify-content:center">
+      <a href="#" class="btn-primary">Book a Meeting</a>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 8 — Verticals ════ -->
+<section class="verticals section-pad">
+  <div class="container">
+    <div class="eyebrow">Verticals</div>
+    <h2 class="section-headline">Built for Any Vertical Where<br>Intent Needs Execution</h2>
+    <p class="sub">VLS Engine can support verticals where users have a need, providers can fulfill it, and AI can help qualify, match, coordinate, or complete the workflow.</p>
+    <div class="vert-grid">
+      <div class="vert-card"><span class="vert-icon">&#9881;</span>Services</div>
+      <div class="vert-card"><span class="vert-icon">&#127860;</span>Restaurants</div>
+      <div class="vert-card"><span class="vert-icon">&#9992;</span>Travel</div>
+      <div class="vert-card"><span class="vert-icon">&#127911;</span>Events</div>
+      <div class="vert-card"><span class="vert-icon">&#128666;</span>Delivery</div>
+      <div class="vert-card"><span class="vert-icon">&#127968;</span>Real Estate</div>
+      <div class="vert-card"><span class="vert-icon">&#127973;</span>Healthcare</div>
+      <div class="vert-card"><span class="vert-icon">&#127963;</span>Government</div>
+      <div class="vert-card"><span class="vert-icon">&#128188;</span>Enterprise</div>
+      <div class="vert-card"><span class="vert-icon">&#128722;</span>E-Commerce</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 9 — BG8 Proof of Concept ════ -->
+<section class="bg8-proof section-pad">
+  <div class="container">
+    <div class="eyebrow">Proof of Concept</div>
+    <h2 class="section-headline">BG8: A Live Marketplace<br>Built on VLS Engine</h2>
+    <div class="bg8-proof-inner">
+      <div class="bg8-proof-text">
+        <p class="body-text">BG8 is VLS's AI-powered "near me" marketplace and a live example of what VLS Engine can power. It allows users to ask for services naturally and helps businesses receive qualified leads, communicate through AI agents, and manage booking workflows.</p>
+        <p class="eyebrow" style="margin-top:40px; margin-bottom:24px;">BG8 Demonstrates</p>
+        <ul class="demo-list">
+          <li>AI-assisted service discovery</li>
+          <li>Vendor matching</li>
+          <li>Request qualification</li>
+          <li>AI-to-AI communication</li>
+          <li>Booking workflows</li>
+          <li>Follow-up automation</li>
+          <li>Vendor onboarding</li>
+          <li>Multi-category expansion</li>
+        </ul>
+        <div class="example-block">
+          <p class="quote">"Find me an emergency dentist."</p>
+          <p>BG8 can qualify urgency, location, timing, preferences, and availability, then match the user with suitable providers and support the booking process.</p>
+          <p style="margin-top:12px">The same model can be adapted across services, restaurants, travel, events, real estate, healthcare access, government services, enterprise workflows, and more.</p>
+        </div>
+        <a href="#" class="btn-ghost">See BG8 in Action</a>
+      </div>
+      <div class="bg8-visual" aria-hidden="true">
+        <div class="bg8-phone-cluster">
+          <!-- Phone 1: AI Agent Setup -->
+          <svg class="bg8-phone" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg" font-family="Outfit,-apple-system,sans-serif">
+            <defs>
+              <radialGradient id="bp1-aur-green" cx="15%" cy="88%" r="50%"><stop offset="0%" stop-color="#22C55E" stop-opacity="0.22"/><stop offset="100%" stop-color="#22C55E" stop-opacity="0"/></radialGradient>
+              <radialGradient id="bp1-aur-teal" cx="85%" cy="12%" r="55%"><stop offset="0%" stop-color="#00C2E0" stop-opacity="0.25"/><stop offset="100%" stop-color="#00C2E0" stop-opacity="0"/></radialGradient>
+              <linearGradient id="bp1-g-teal" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient>
+              <linearGradient id="bp1-g-green" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#4ADE5C"/><stop offset="100%" stop-color="#22C55E"/></linearGradient>
+              <clipPath id="bp1-clip"><rect width="390" height="844" rx="47"/></clipPath>
+            </defs>
+            <rect width="390" height="844" rx="47" fill="#141C22"/>
+            <rect width="390" height="844" rx="47" stroke="#2A3A44" stroke-width="6" fill="none"/>
+            <rect width="390" height="844" rx="47" stroke="#4ADE5C" stroke-width="2" stroke-opacity="0.3" fill="none"/>
+            <g clip-path="url(#bp1-clip)"><rect width="390" height="844" fill="url(#bp1-aur-green)"/><rect width="390" height="844" fill="url(#bp1-aur-teal)" fill-opacity="0.4"/></g>
+            <rect x="140" y="12" width="110" height="30" rx="15" fill="#0A0A0F"/>
+            <text x="32" y="30" font-size="15" font-weight="600" fill="#E8F5F2">9:41</text>
+            <text x="195" y="92" text-anchor="middle" font-size="11" font-weight="600" fill="#4ADE5C">Step 3 of 4</text>
+            <rect x="36" y="102" width="318" height="4" rx="2" fill="#2A3A44"/>
+            <rect x="36" y="102" width="239" height="4" rx="2" fill="url(#bp1-g-green)"/>
+            <circle cx="195" cy="210" r="52" fill="#00C2E0" fill-opacity="0.07"/>
+            <circle cx="195" cy="210" r="42" fill="#1C2730" stroke="url(#bp1-g-teal)" stroke-width="2"/>
+            <rect x="173" y="196" width="44" height="36" rx="8" fill="#00C2E0" fill-opacity="0.7"/>
+            <circle cx="186" cy="210" r="5" fill="#E8F5F2"/>
+            <circle cx="204" cy="210" r="5" fill="#E8F5F2"/>
+            <path d="M185,222 Q195,228 205,222" fill="none" stroke="#E8F5F2" stroke-width="1.5"/>
+            <text x="195" y="295" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="3" fill="#00C2E0" fill-opacity="0.8">YOUR AI AGENT</text>
+            <text x="195" y="324" text-anchor="middle" font-size="27" font-weight="800" fill="#E8F5F2" letter-spacing="-1.5">Meet Max,</text>
+            <text x="195" y="356" text-anchor="middle" font-size="27" font-weight="800" fill="url(#bp1-g-teal)" letter-spacing="-1.5">your AI agent</text>
+            <text x="195" y="386" text-anchor="middle" font-size="14" fill="#7BB5A8">Max handles bookings and customer</text>
+            <text x="195" y="406" text-anchor="middle" font-size="14" fill="#7BB5A8">inquiries while you focus on work.</text>
+            <rect x="36" y="428" width="318" height="56" rx="12" fill="#1C2730" stroke="#00C2E0" stroke-width="1.5" stroke-opacity="0.5"/>
+            <text x="52" y="444" font-size="10" fill="#7BB5A8">Agent Name</text>
+            <text x="52" y="464" font-size="13" fill="#E8F5F2">Max</text>
+            <text x="36" y="506" font-size="12" fill="#7BB5A8">Communication tone: <tspan fill="#00C2E0" font-weight="600">Friendly</tspan></text>
+            <rect x="36" y="516" width="318" height="6" rx="3" fill="#2A3A44"/>
+            <rect x="36" y="516" width="212" height="6" rx="3" fill="url(#bp1-g-teal)"/>
+            <circle cx="248" cy="519" r="10" fill="url(#bp1-g-teal)"/>
+            <rect x="36" y="736" width="318" height="52" rx="26" fill="url(#bp1-g-teal)"/>
+            <text x="195" y="767" text-anchor="middle" font-size="17" font-weight="700" fill="#141C22">Activate Max</text>
+            <rect x="148" y="824" width="94" height="4" rx="2" fill="#E8F5F2" fill-opacity="0.2"/>
+          </svg>
+          <!-- Phone 2: Payout Setup -->
+          <svg class="bg8-phone" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg" font-family="Outfit,-apple-system,sans-serif">
+            <defs>
+              <radialGradient id="bp2-aur-green" cx="15%" cy="88%" r="50%"><stop offset="0%" stop-color="#22C55E" stop-opacity="0.22"/><stop offset="100%" stop-color="#22C55E" stop-opacity="0"/></radialGradient>
+              <radialGradient id="bp2-aur-teal" cx="85%" cy="12%" r="55%"><stop offset="0%" stop-color="#00C2E0" stop-opacity="0.18"/><stop offset="100%" stop-color="#00C2E0" stop-opacity="0"/></radialGradient>
+              <linearGradient id="bp2-g-green" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient>
+              <clipPath id="bp2-clip"><rect width="390" height="844" rx="47"/></clipPath>
+            </defs>
+            <rect width="390" height="844" rx="47" fill="#141C22"/>
+            <rect width="390" height="844" rx="47" stroke="#2A3A44" stroke-width="6" fill="none"/>
+            <rect width="390" height="844" rx="47" stroke="#4ADE5C" stroke-width="2" stroke-opacity="0.3" fill="none"/>
+            <g clip-path="url(#bp2-clip)"><rect width="390" height="844" fill="url(#bp2-aur-green)"/><rect width="390" height="844" fill="url(#bp2-aur-teal)" fill-opacity="0.4"/></g>
+            <rect x="140" y="12" width="110" height="30" rx="15" fill="#0A0A0F"/>
+            <text x="32" y="30" font-size="15" font-weight="600" fill="#E8F5F2">9:41</text>
+            <text x="195" y="92" text-anchor="middle" font-size="11" font-weight="600" fill="#4ADE5C">Step 4 of 4</text>
+            <rect x="36" y="102" width="318" height="4" rx="2" fill="#2A3A44"/>
+            <rect x="36" y="102" width="318" height="4" rx="2" fill="url(#bp2-g-green)"/>
+            <text x="195" y="152" text-anchor="middle" font-size="10" font-weight="600" letter-spacing="3" fill="#4ADE5C" fill-opacity="0.8">PAYOUT SETUP</text>
+            <text x="195" y="184" text-anchor="middle" font-size="27" font-weight="800" fill="#E8F5F2" letter-spacing="-1.5">How do you want</text>
+            <text x="195" y="216" text-anchor="middle" font-size="27" font-weight="800" fill="url(#bp2-g-green)" letter-spacing="-1.5">to get paid?</text>
+            <text x="195" y="246" text-anchor="middle" font-size="14" fill="#7BB5A8">Funds hit your account in 1-2 business days</text>
+            <rect x="24" y="270" width="342" height="80" rx="18" fill="#4ADE5C" fill-opacity="0.05" stroke="#4ADE5C" stroke-width="2"/>
+            <circle cx="54" cy="310" r="20" fill="#4ADE5C" fill-opacity="0.15"/>
+            <text x="54" y="316" text-anchor="middle" font-size="18">&#x1F3E6;</text>
+            <text x="88" y="300" font-size="16" font-weight="700" fill="#E8F5F2">Bank Transfer</text>
+            <text x="88" y="320" font-size="12" fill="#7BB5A8">Direct deposit to your bank</text>
+            <text x="88" y="338" font-size="11" fill="#4ADE5C">Recommended · Free</text>
+            <circle cx="342" cy="278" r="12" fill="url(#bp2-g-green)"/>
+            <path d="M336,278 L340,282 L348,273" fill="none" stroke="#141C22" stroke-width="2" stroke-linecap="round"/>
+            <rect x="36" y="634" width="318" height="52" rx="26" fill="url(#bp2-g-green)"/>
+            <text x="195" y="665" text-anchor="middle" font-size="17" font-weight="700" fill="#141C22">Finish Setup</text>
+            <rect x="148" y="824" width="94" height="4" rx="2" fill="#E8F5F2" fill-opacity="0.2"/>
+          </svg>
+        </div>
+        <!-- Flow diagram: customers → BG8 → you -->
+        <svg class="bg8-streamline" viewBox="0 0 600 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bsg-inbound" gradientUnits="userSpaceOnUse" x1="90" y1="0" x2="282" y2="0"><stop offset="0%" stop-color="#4ADE5C"/><stop offset="100%" stop-color="#00C2E0"/></linearGradient>
+            <linearGradient id="bsg-hub" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient>
+            <filter id="bsg-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M90,48 C200,48 220,110 282,110" stroke="url(#bsg-inbound)" stroke-width="2" fill="none" opacity="0.7"/>
+          <path d="M90,110 L282,110" stroke="url(#bsg-inbound)" stroke-width="2.5" fill="none" opacity="0.85"/>
+          <path d="M90,172 C200,172 220,110 282,110" stroke="url(#bsg-inbound)" stroke-width="2" fill="none" opacity="0.7"/>
+          <path d="M318,110 L504,110" stroke="#00C2E0" stroke-width="2.5" fill="none" opacity="0.75"/>
+          <circle cx="90" cy="48" r="9" fill="#4ADE5C" opacity="0.9"/>
+          <circle cx="90" cy="48" r="16" fill="#4ADE5C" opacity="0.13"/>
+          <circle cx="90" cy="110" r="9" fill="#4ADE5C" opacity="0.9"/>
+          <circle cx="90" cy="110" r="16" fill="#4ADE5C" opacity="0.13"/>
+          <circle cx="90" cy="172" r="9" fill="#4ADE5C" opacity="0.9"/>
+          <circle cx="90" cy="172" r="16" fill="#4ADE5C" opacity="0.13"/>
+          <circle cx="300" cy="110" r="40" fill="url(#bsg-hub)" opacity="0.09" filter="url(#bsg-glow)"/>
+          <circle cx="300" cy="110" r="26" fill="url(#bsg-hub)" opacity="0.14"/>
+          <circle cx="300" cy="110" r="18" fill="#141C22" stroke="url(#bsg-hub)" stroke-width="2"/>
+          <text x="300" y="115" font-family="Outfit,Arial" font-size="9" font-weight="800" fill="url(#bsg-hub)" text-anchor="middle" letter-spacing="1.5">BG8</text>
+          <circle cx="516" cy="110" r="11" fill="#00C2E0" opacity="0.9"/>
+          <circle cx="516" cy="110" r="20" fill="#00C2E0" opacity="0.11"/>
+          <circle cx="516" cy="110" r="11" stroke="#00C2E0" stroke-width="1" fill="none" opacity="0.4"><animate attributeName="r" values="13;28" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0" dur="2s" repeatCount="indefinite"/></circle>
+          <text x="90" y="33" font-family="Outfit,Arial" font-size="9" font-weight="600" fill="#4ADE5C" text-anchor="middle" letter-spacing="1.5">CUSTOMER</text>
+          <text x="90" y="130" font-family="Outfit,Arial" font-size="9" font-weight="600" fill="#4ADE5C" text-anchor="middle" letter-spacing="1.5">CUSTOMER</text>
+          <text x="90" y="191" font-family="Outfit,Arial" font-size="9" font-weight="600" fill="#4ADE5C" text-anchor="middle" letter-spacing="1.5">CUSTOMER</text>
+          <text x="516" y="135" font-family="Outfit,Arial" font-size="11" font-weight="700" fill="#00C2E0" text-anchor="middle" letter-spacing="2">YOU</text>
+          <circle r="3.5" fill="#4ADE5C" opacity="0.9"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0s" path="M90,48 C200,48 220,110 282,110"/></circle>
+          <circle r="3.5" fill="#4ADE5C" opacity="0.9"><animateMotion dur="1.5s" repeatCount="indefinite" begin="0.5s" path="M90,110 L282,110"/></circle>
+          <circle r="3.5" fill="#4ADE5C" opacity="0.9"><animateMotion dur="1.8s" repeatCount="indefinite" begin="1.0s" path="M90,172 C200,172 220,110 282,110"/></circle>
+          <circle r="4" fill="#00C2E0" opacity="0.95"><animateMotion dur="1.1s" repeatCount="indefinite" begin="0.9s" path="M318,110 L504,110"/></circle>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 10 — Business Case ════ -->
+<section class="biz-case section-pad">
+  <div class="container">
+    <div class="eyebrow">Business Case</div>
+    <h2 class="section-headline">Designed to Reduce Time,<br>Cost, and Execution Risk</h2>
+    <div class="biz-case-two-col">
+      <div class="biz-case-text">
+        <div class="body-text">
+          <p>Building an AI execution platform internally is expensive, slow, and risky.</p>
+          <p style="margin-top:16px">VLS Engine gives partners a faster path to market with proven infrastructure, flexible deployment models, and live product validation through BG8.</p>
+        </div>
+        <p class="disclaimer">Estimates depend on vertical, region, integrations, workflow complexity, and partner requirements.</p>
+      </div><!-- end biz-case-text -->
+
+    </div><!-- end biz-case-two-col -->
+
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 11 — Partnership Models ════ -->
+<section class="partnerships section-pad" id="partners">
+  <div class="container">
+    <div class="eyebrow">Partnership</div>
+    <h2 class="section-headline">Three Ways to Work With VLS</h2>
+    <div class="cards">
+      <div class="partner-card">
+        <div class="card-num"><span class="gradient-text">01</span></div>
+        <h3>White-Label Partner</h3>
+        <p>Launch a branded AI marketplace or workflow platform powered by VLS Engine.</p>
+        <p class="best-for">Best for regional investors, governments, platforms, and operators who want to launch their own AI-native execution platform.</p>
+      </div>
+      <div class="partner-card">
+        <div class="card-num"><span class="gradient-text">02</span></div>
+        <h3>API / Embedded Partner</h3>
+        <p>Integrate VLS Engine into your existing app, marketplace, device, assistant, platform, or digital ecosystem.</p>
+        <p class="best-for">Best for telecoms, super apps, AI platforms, marketplaces, e-commerce platforms, and enterprise systems.</p>
+      </div>
+      <div class="partner-card">
+        <div class="card-num"><span class="gradient-text">03</span></div>
+        <h3>BG8 Country Partner</h3>
+        <p>Become the regional partner for BG8 in your country or region.</p>
+        <p class="best-for">Best for partners who want to launch a localized version of VLS's AI-powered "near me" marketplace.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 12 — Why Partners Choose VLS ════ -->
+<section class="why-vls section-pad">
+  <div class="container">
+    <div class="eyebrow">Why VLS</div>
+    <h2 class="section-headline">Speed, Cost, Infrastructure,<br>and Market Proof</h2>
+    <div class="why-vls-two-col">
+      <div class="why-vls-left">
+        <p style="font-size:18px; color:var(--text-secondary); margin-bottom:8px;">VLS Engine helps partners:</p>
+        <ul class="benefit-list">
+          <li>Launch faster than internal development</li>
+          <li>Reduce technical and execution risk</li>
+          <li>Avoid expensive consulting-led builds</li>
+          <li>Access production-ready AI marketplace infrastructure</li>
+          <li>Create new revenue through transactions and revenue share</li>
+          <li>Expand across regions, categories, and languages</li>
+          <li>Move from AI chat to AI execution</li>
+          <li>Use BG8 as live proof of the model</li>
+        </ul>
+      </div><!-- end why-vls-left -->
+
+    </div><!-- end why-vls-two-col -->
+
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 13 — Web Summit CTA ════ -->
+<section class="websummit">
+  <div class="container">
+    <div class="eyebrow">Web Summit Vancouver</div>
+    <h2 class="section-headline">Meet VLS at Web Summit Vancouver&nbsp;&mdash; Booth&nbsp;#E450</h2>
+    <p class="body-text">Looking to launch an AI marketplace, embed AI execution into your platform, or become a regional BG8 partner? Meet VLS at Web Summit Vancouver and see how VLS Engine can help you launch faster.</p>
+    <div class="btn-group">
+      <a href="#" class="btn-primary">Book a Meeting</a>
+      <a href="#" class="btn-ghost">See BG8 Demo</a>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ════ SECTION 14 — Final CTA ════ -->
+<section class="final-cta">
+  <div class="final-cta-aurora"></div>
+  <div class="container inner">
+    <h2 class="section-headline">Ready to Launch an<br>AI Execution Platform?</h2>
+    <p class="body-text">Whether you want to launch a new AI-powered marketplace, embed execution into an existing platform, or become a regional BG8 partner, VLS Engine gives you a faster path to market.</p>
+    <p class="body-text" style="margin-bottom:40px">Move from idea to live execution without spending years building infrastructure from scratch.</p>
+    <div class="btn-group">
+      <a href="#" class="btn-primary">Book a Meeting</a>
+      <a href="#" class="btn-ghost">Request Partnership Deck</a>
+      <a href="#" class="btn-ghost">See BG8 in Action</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Accent Bar ── -->
+<div class="accent-bar"></div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">&copy; 2026 VLS. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
