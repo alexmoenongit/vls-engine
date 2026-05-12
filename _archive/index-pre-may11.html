@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VLS Engine — Launch a production-ready AI commerce product in weeks — not months</title>
+<title>VLS Engine — AI Execution Infrastructure</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -238,7 +238,6 @@ nav {
   justify-content: center;
   position: relative;
   align-self: stretch;
-  isolation: isolate; /* creates new stacking context — fixes Chrome mask+filter compositing */
 }
 .hero-mark-glow { display: none; }
 .hero-mark svg {
@@ -261,8 +260,6 @@ nav {
   pointer-events: none;
   -webkit-mask-image: linear-gradient(to top, transparent 0%, black 22%, black 100%);
   mask-image: linear-gradient(to top, transparent 0%, black 22%, black 100%);
-  transform: translateZ(0); /* forces own GPU layer in Chrome, fixes mask+filter compositing */
-  will-change: transform;
 }
 .hero-mini-phones svg {
   width: 82px;
@@ -305,8 +302,6 @@ nav {
   overflow: visible;
   -webkit-mask-image: linear-gradient(to top, transparent 0%, black 20%, black 100%);
   mask-image: linear-gradient(to top, transparent 0%, black 20%, black 100%);
-  transform: translateZ(0); /* forces own GPU layer in Chrome, fixes mask+filter compositing */
-  will-change: transform;
 }
 .hero-mini-flow svg {
   width: 200px;
@@ -326,11 +321,8 @@ nav {
 }
 .feature-strip-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
-}
-@media (max-width: 1100px) {
-  .feature-strip-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .feature-strip-card {
   background: rgba(0,194,224,0.04);
@@ -774,7 +766,8 @@ nav {
   gap: 20px;
   margin-top: 48px;
 }
-@media (max-width: 700px) { .steps { grid-template-columns: repeat(5, 1fr); } }
+@media (max-width: 1100px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px) { .steps { grid-template-columns: 1fr; } }
 .step {
   padding: 32px 24px 28px;
   border: 1px solid rgba(0,194,224,0.15);
@@ -1565,66 +1558,6 @@ footer {
   color: var(--text-secondary);
   line-height: 1.5;
 }
-
-/* ══════════════════════════════════════════
-   PROMPTS SECTION — What Users Say
-   ══════════════════════════════════════════ */
-.prompts-section { padding: 100px 0; }
-.prompts-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin: 48px 0 48px;
-}
-@media (max-width: 900px) { .prompts-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .prompts-grid { grid-template-columns: 1fr; } }
-.prompt-bubble {
-  background: rgba(0,194,224,0.04);
-  border: 1px solid rgba(0,194,224,0.22);
-  border-radius: 20px;
-  padding: 28px 26px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
-  box-shadow: 0 0 0 1px rgba(74,222,92,0.05), 0 0 16px rgba(0,194,224,0.08);
-}
-.prompt-bubble::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(0,194,224,0.08) 0%, transparent 65%);
-  pointer-events: none;
-}
-.prompt-bubble:hover {
-  border-color: rgba(74,222,92,0.45);
-  box-shadow: 0 0 40px rgba(0,194,224,0.16), 0 0 70px rgba(74,222,92,0.07);
-  transform: translateY(-3px);
-}
-.prompt-text {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.45;
-  margin-bottom: 12px;
-}
-.prompt-action {
-  font-size: 13px;
-  font-weight: 600;
-  background: linear-gradient(90deg, #00C2E0, #4ADE5C);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.prompts-closer {
-  text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
 </style>
 </head>
 <body>
@@ -1665,7 +1598,7 @@ footer {
         <h1><span class="gradient-text">VLS Engine</span></h1>
         <div class="hero-badge"><span class="gradient-text">AI EXECUTION INFRASTRUCTURE</span></div>
         <p class="hero-tagline">Most AI answers. VLS executes.</p>
-        <p class="hero-sub">Launch a production-ready AI commerce product in weeks &mdash; not months. The AI execution layer that turns user intent into completed transactions, embedded inside your platform.</p>
+        <p class="hero-sub">The AI commerce layer that turns user intent into completed transactions &mdash; embedded inside your platform in weeks.</p>
         <div class="btn-group">
           <a href="#" class="btn-primary">Book a Demo</a>
           <a href="#" class="btn-ghost">See BG8 in Action</a>
@@ -1992,116 +1925,50 @@ footer {
   <!-- Feature cards inside hero — inherits aurora background -->
   <div class="feature-strip">
     <div class="feature-strip-grid">
-      <!-- Card 1: Shield / Reduce Technical Risk -->
+      <!-- Card 1: AI mic + sparkle -->
       <div class="feature-strip-card">
         <svg class="feature-strip-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px">
           <defs><linearGradient id="fg1" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M26 5 L44 13 L44 26 C44 36 36 44 26 47 C16 44 8 36 8 26 L8 13 Z" stroke="url(#fg1)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-          <polyline points="18,26 23,32 35,19" stroke="url(#fg1)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="19" y="7" width="14" height="20" rx="7" fill="url(#fg1)"/>
+          <path d="M12 26 C12 37 40 37 40 26" stroke="url(#fg1)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <line x1="26" y1="37" x2="26" y2="44" stroke="url(#fg1)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="18" y1="44" x2="34" y2="44" stroke="url(#fg1)" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- AI sparkle: 4-point star top-right -->
+          <path d="M42 7 L43.3 11.7 L48 13 L43.3 14.3 L42 19 L40.7 14.3 L36 13 L40.7 11.7 Z" fill="url(#fg1)"/>
+          <circle cx="46" cy="20" r="1.8" fill="#4ADE5C" opacity="0.75"/>
         </svg>
-        <div class="feature-strip-title">Reduce Technical Risk</div>
-        <div class="feature-strip-sub">Skip years of infrastructure development. VLS Engine is already in production and tested.</div>
+        <div class="feature-strip-title">Understands the Ask</div>
+        <div class="feature-strip-sub">Any user request — parsed, structured, and qualified by AI in seconds.</div>
       </div>
-      <!-- Card 2: Server / Production-Ready -->
+      <!-- Card 2: bullseye + sparkle -->
       <div class="feature-strip-card">
         <svg class="feature-strip-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px">
           <defs><linearGradient id="fg2" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <rect x="8" y="10" width="36" height="10" rx="3" stroke="url(#fg2)" stroke-width="2.5" fill="none"/>
-          <rect x="8" y="24" width="36" height="10" rx="3" stroke="url(#fg2)" stroke-width="2.5" fill="none"/>
-          <rect x="8" y="38" width="36" height="10" rx="3" stroke="url(#fg2)" stroke-width="2.5" fill="none"/>
-          <circle cx="38" cy="15" r="2.5" fill="url(#fg2)"/>
-          <circle cx="38" cy="29" r="2.5" fill="url(#fg2)"/>
-          <circle cx="38" cy="43" r="2.5" fill="url(#fg2)"/>
+          <circle cx="26" cy="26" r="20" stroke="url(#fg2)" stroke-width="2.5" fill="none"/>
+          <circle cx="26" cy="26" r="12" stroke="url(#fg2)" stroke-width="2" fill="none"/>
+          <circle cx="26" cy="26" r="5" fill="url(#fg2)"/>
+          <!-- AI sparkle -->
+          <path d="M43 7 L44.3 11.7 L49 13 L44.3 14.3 L43 19 L41.7 14.3 L37 13 L41.7 11.7 Z" fill="url(#fg2)"/>
+          <circle cx="48" cy="20" r="1.8" fill="#00C2E0" opacity="0.75"/>
         </svg>
-        <div class="feature-strip-title">Production-Ready Infrastructure</div>
-        <div class="feature-strip-sub">Not a POC — a live marketplace running real transactions across real vendors.</div>
+        <div class="feature-strip-title">Finds the Right Vendor</div>
+        <div class="feature-strip-sub">AI matches demand to the best available provider. No forms. No manual triage.</div>
       </div>
-      <!-- Card 3: Dollar / Unlock New Revenue -->
+      <!-- Card 3: checkmark + sparkle -->
       <div class="feature-strip-card">
         <svg class="feature-strip-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px">
           <defs><linearGradient id="fg3" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
           <circle cx="26" cy="26" r="20" stroke="url(#fg3)" stroke-width="2.5" fill="none"/>
-          <text x="26" y="33" text-anchor="middle" font-family="Outfit, sans-serif" font-weight="800" font-size="22" fill="url(#fg3)">$</text>
+          <polyline points="16,26 22,33 36,18" stroke="url(#fg3)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- AI sparkle -->
+          <path d="M43 7 L44.3 11.7 L49 13 L44.3 14.3 L43 19 L41.7 14.3 L37 13 L41.7 11.7 Z" fill="url(#fg3)"/>
+          <circle cx="48" cy="21" r="1.8" fill="#4ADE5C" opacity="0.75"/>
         </svg>
-        <div class="feature-strip-title">Unlock New Revenue</div>
-        <div class="feature-strip-sub">AI-mediated transactions generate revenue share from day one. Zero acquisition cost model.</div>
-      </div>
-      <!-- Card 4: Globe / Expand Without Rebuilding -->
-      <div class="feature-strip-card">
-        <svg class="feature-strip-icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px">
-          <defs><linearGradient id="fg4" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <circle cx="26" cy="26" r="20" stroke="url(#fg4)" stroke-width="2.5" fill="none"/>
-          <ellipse cx="26" cy="26" rx="9" ry="20" stroke="url(#fg4)" stroke-width="1.8" fill="none"/>
-          <line x1="6" y1="26" x2="46" y2="26" stroke="url(#fg4)" stroke-width="1.8"/>
-          <path d="M9 18 Q26 22 43 18" stroke="url(#fg4)" stroke-width="1.5" fill="none"/>
-          <path d="M9 34 Q26 30 43 34" stroke="url(#fg4)" stroke-width="1.5" fill="none"/>
-        </svg>
-        <div class="feature-strip-title">Expand Without Rebuilding</div>
-        <div class="feature-strip-sub">One integration. Every region, every category, every language. Launch anywhere.</div>
+        <div class="feature-strip-title">Closes the Deal</div>
+        <div class="feature-strip-sub">Negotiation, confirmation, fulfillment — handled by AI agents. No humans required.</div>
       </div>
     </div>
   </div></section>
-
-<hr class="section-divider">
-
-<!-- ════ PROMPT EXAMPLES SECTION — What Users Say ════ -->
-<section class="section-pad prompts-section">
-  <div class="container">
-    <div class="eyebrow">What Users Say</div>
-    <h2 class="section-headline">Any ask. <span class="gradient-text">Any service.</span></h2>
-    <div class="prompts-grid">
-      <div class="prompt-bubble">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-bottom:10px">
-          <defs><linearGradient id="pb-g1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M4 5 Q4 2 7 2 L21 2 Q24 2 24 5 L24 16 Q24 19 21 19 L14 19 L8 24 L8 19 Q4 19 4 16 Z" stroke="url(#pb-g1)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        </svg>
-        <p class="prompt-text">"Book me a cleaner for Saturday morning"</p>
-        <p class="prompt-action">→ AI qualifies, matches, and executes</p>
-      </div>
-      <div class="prompt-bubble">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-bottom:10px">
-          <defs><linearGradient id="pb-g2" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M4 5 Q4 2 7 2 L21 2 Q24 2 24 5 L24 16 Q24 19 21 19 L14 19 L8 24 L8 19 Q4 19 4 16 Z" stroke="url(#pb-g2)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        </svg>
-        <p class="prompt-text">"I need 3 quotes for a kitchen renovation"</p>
-        <p class="prompt-action">→ AI qualifies, matches, and executes</p>
-      </div>
-      <div class="prompt-bubble">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-bottom:10px">
-          <defs><linearGradient id="pb-g3" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M4 5 Q4 2 7 2 L21 2 Q24 2 24 5 L24 16 Q24 19 21 19 L14 19 L8 24 L8 19 Q4 19 4 16 Z" stroke="url(#pb-g3)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        </svg>
-        <p class="prompt-text">"Find an available plumber near me tonight"</p>
-        <p class="prompt-action">→ AI qualifies, matches, and executes</p>
-      </div>
-      <div class="prompt-bubble">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-bottom:10px">
-          <defs><linearGradient id="pb-g4" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M4 5 Q4 2 7 2 L21 2 Q24 2 24 5 L24 16 Q24 19 21 19 L14 19 L8 24 L8 19 Q4 19 4 16 Z" stroke="url(#pb-g4)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        </svg>
-        <p class="prompt-text">"Book a restaurant for 4 people this Friday"</p>
-        <p class="prompt-action">→ AI qualifies, matches, and executes</p>
-      </div>
-      <div class="prompt-bubble">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-bottom:10px">
-          <defs><linearGradient id="pb-g5" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M4 5 Q4 2 7 2 L21 2 Q24 2 24 5 L24 16 Q24 19 21 19 L14 19 L8 24 L8 19 Q4 19 4 16 Z" stroke="url(#pb-g5)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        </svg>
-        <p class="prompt-text">"Get me a tow truck — I'm on Hwy 1 near Langley"</p>
-        <p class="prompt-action">→ AI qualifies, matches, and executes</p>
-      </div>
-      <div class="prompt-bubble">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-bottom:10px">
-          <defs><linearGradient id="pb-g6" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00C2E0"/><stop offset="100%" stop-color="#4ADE5C"/></linearGradient></defs>
-          <path d="M4 5 Q4 2 7 2 L21 2 Q24 2 24 5 L24 16 Q24 19 21 19 L14 19 L8 24 L8 19 Q4 19 4 16 Z" stroke="url(#pb-g6)" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-        </svg>
-        <p class="prompt-text">"Find someone to fix my fence this week"</p>
-        <p class="prompt-action">→ AI qualifies, matches, and executes</p>
-      </div>
-    </div>
-    <p class="prompts-closer gradient-text">One natural language request. VLS Engine does the rest.</p>
-  </div>
-</section>
 
 <hr class="section-divider">
 
@@ -2285,7 +2152,7 @@ footer {
     <p class="sub">VLS Engine handles the full journey — from a user's first words to a completed transaction.</p>
 
     <!-- Flow diagram: 5 evenly spaced icon nodes, arrows between each -->
-    <div class="hiw-flow-diagram" style="max-width:480px; margin:0 auto 36px; display:none;">
+    <div class="hiw-flow-diagram">
       <svg viewBox="0 0 800 155" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -2379,7 +2246,7 @@ footer {
         <div class="card-num-bg">02</div>
         <div class="step-label">Step 02</div>
         <h3>Qualification</h3>
-        <p>VLS Engine collects context, clarifies the request, and builds a structured job spec automatically.</p>
+        <p>AI collects context: urgency, location, timing, budget, preferences. No forms — just conversation.</p>
       </div>
       <div class="step">
         <div class="card-num-bg">03</div>
@@ -2391,7 +2258,7 @@ footer {
         <div class="card-num-bg">04</div>
         <div class="step-label">Step 04</div>
         <h3>Vendor AI Agent</h3>
-        <p>The vendor's AI agent reviews the request, responds with pricing and availability, and negotiates terms.</p>
+        <p>The vendor's AI agent receives the request and responds with availability, pricing, and next steps.</p>
       </div>
       <div class="step">
         <div class="card-num-bg">05</div>
